@@ -91,6 +91,27 @@
     .hidden {
       display: none;
     }
+
+    @media print {
+      .floating-profile,
+      .button-container,
+      #configuracoes {
+        display: none !important;
+      }
+      body {
+        background-color: #fff;
+        color: #000;
+      }
+      table, th, td {
+        border: 1px solid #000;
+      }
+      th {
+        background-color: #ccc;
+      }
+      td {
+        background-color: #eee;
+      }
+    }
   </style>
 </head>
 <body>
@@ -125,8 +146,7 @@
   </div>
 
   <div class="button-container">
-    <button onclick="imprimirOrcamento()">Imprimir orçamento</button>
-    <button onclick="salvarComoWord()">Salvar como Word</button>
+    <button onclick="imprimirOrcamento()">Salvar como PDF</button>
     <button onclick="enviarWhatsApp()">Enviar para WhatsApp</button>
     <button onclick="toggleConfiguracoes()">Gerenciar Itens</button>
   </div>
@@ -222,65 +242,6 @@
       window.print();
     }
 
-    function salvarComoWord() {
-      const total = document.getElementById('total').textContent;
-      const nomeOrcamento = prompt('Digite o nome do orçamento para o Word:') || 'Orçamento';
-      const linhas = tbody.querySelectorAll('tr');
-      const horas = document.getElementById('horasTrabalhadas').value;
-      const lucro = document.getElementById('lucroNecessario').textContent;
-
-      let conteudo = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office'
-              xmlns:w='urn:schemas-microsoft-com:office:word'
-              xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'><title>Orçamento</title></head><body>
-        <h2>${nomeOrcamento}</h2>
-        <table border='1' style='border-collapse:collapse; width:100%;'>
-          <tr>
-            <th>Serviço / Item</th>
-            <th>Preço (R$)</th>
-            <th>Quantidade</th>
-            <th>Subtotal (R$)</th>
-          </tr>`;
-
-      linhas.forEach(tr => {
-        const checkbox = tr.querySelector('input[type="checkbox"]');
-        const ativo = checkbox.checked;
-        if (ativo) {
-          const colunas = tr.querySelectorAll('td');
-          const nome = colunas[1].innerText;
-          const preco = colunas[2].innerText;
-          const qtd = colunas[3].querySelector('input').value;
-          const subtotal = colunas[4].innerText;
-          conteudo += `
-            <tr>
-              <td>${nome}</td>
-              <td>${preco}</td>
-              <td>${qtd}</td>
-              <td>${subtotal}</td>
-            </tr>`;
-        }
-      });
-
-      conteudo += `</table>
-        <p><strong>Total:</strong> R$ ${total}</p>
-        <p><strong>Horas trabalhadas:</strong> ${horas}</p>
-        <p><strong>Lucro necessário:</strong> ${lucro}</p>
-        </body></html>`;
-
-      const blob = new Blob(['\ufeff', conteudo], {
-        type: 'application/msword'
-      });
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = nomeOrcamento.replace(/\s+/g, '_') + '.doc';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-
     function enviarWhatsApp() {
       const total = document.getElementById('total').textContent;
       const nome = prompt('Digite o nome do orçamento:');
@@ -289,6 +250,7 @@
       window.open(url, '_blank');
     }
 
+    // Foto de perfil salva no navegador
     const fotoInput = document.getElementById('fotoInput');
     const fotoPerfil = document.getElementById('fotoPerfil');
     fotoInput.addEventListener('change', () => {

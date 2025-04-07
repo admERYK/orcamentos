@@ -143,7 +143,9 @@
     function calcularTotal() {
       let total = 0;
       inputs.forEach(input => {
-        if (input.closest('tr').querySelector('input[type="checkbox"]').checked) {
+        const checkbox = input.closest('tr').querySelector('input[type="checkbox"]');
+        
+        if (checkbox.checked) {
           const preco = parseFloat(input.dataset.preco);
           const qtd = parseFloat(input.value);
           const subtotal = preco * qtd;
@@ -152,11 +154,13 @@
         }
       });
       
+      // Aplica o lucro
       let lucro = parseFloat(lucroInput.value) / 100;
       total += total * lucro;
       document.getElementById('total').textContent = total.toFixed(2);
     }
 
+    // Atualiza o total sempre que houver alteração
     inputs.forEach(input => input.addEventListener('input', calcularTotal));
     checkboxes.forEach(checkbox => checkbox.addEventListener('change', calcularTotal));
     lucroInput.addEventListener('input', calcularTotal);
@@ -167,7 +171,8 @@
 
     function enviarWhatsApp() {
       const total = document.getElementById('total').textContent;
-      const url = `https://api.whatsapp.com/send?text=Orçamento%20Jardinagem%20-%20Total:%20R$${total}`;
+      const numero = '+5517991943459'; // Número de WhatsApp (sem parênteses ou espaços)
+      const url = `https://api.whatsapp.com/send?phone=${numero}&text=Orçamento%20Jardinagem%20-%20Total:%20R$${total}`;
       window.open(url, '_blank');
     }
   </script>

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Orçamento Jardinagem</title>
   <style>
     body {
@@ -16,7 +16,7 @@
     }
     h1 {
       text-align: center;
-      color: #FFD700; /* Dourado metálico */
+      color: #FFD700;
     }
     table {
       width: 100%;
@@ -25,7 +25,7 @@
     }
     th, td {
       padding: 10px;
-      border: 1px solid #FFD700; /* Bordas douradas */
+      border: 1px solid #FFD700;
       text-align: left;
     }
     th {
@@ -68,14 +68,6 @@
     button:hover {
       background-color: #e6b800;
     }
-    @media screen and (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      table, .total {
-        font-size: 14px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -92,28 +84,28 @@
     </thead>
     <tbody id="itens">
       <tr>
-        <td><input type="checkbox" class="checkbox" checked data-item="gasolina"></td>
+        <td><input type="checkbox" class="checkbox" checked></td>
         <td>Gasolina maquinário</td>
         <td>6.05</td>
         <td><input type="number" min="0" value="0" data-preco="6.05"></td>
         <td class="subtotal">0.00</td>
       </tr>
       <tr>
-        <td><input type="checkbox" class="checkbox" checked data-item="diaria"></td>
+        <td><input type="checkbox" class="checkbox" checked></td>
         <td>Diária por prestador</td>
         <td>50.00</td>
         <td><input type="number" min="0" value="0" data-preco="50.00"></td>
         <td class="subtotal">0.00</td>
       </tr>
       <tr>
-        <td><input type="checkbox" class="checkbox" checked data-item="saco-lixo"></td>
+        <td><input type="checkbox" class="checkbox" checked></td>
         <td>Saco de lixo (unidade)</td>
         <td>0.50</td>
         <td><input type="number" min="0" value="0" data-preco="0.50"></td>
         <td class="subtotal">0.00</td>
       </tr>
       <tr>
-        <td><input type="checkbox" class="checkbox" checked data-item="gasolina-carro"></td>
+        <td><input type="checkbox" class="checkbox" checked></td>
         <td>Gasolina para carro (a cada 10km)</td>
         <td>20.00</td>
         <td><input type="number" min="0" value="0" data-preco="20.00"></td>
@@ -121,13 +113,20 @@
       </tr>
     </tbody>
   </table>
-  
+
   <div class="total">
-    Total: R$ <span id="total">0.00</span>
+    Total: R$ <span id="valorTotal">0.00</span>
   </div>
-  
+
   <div class="total">
     Lucro (%): <input type="number" id="lucro" value="0" min="0" max="100" style="width: 60px;">%
+  </div>
+
+  <div style="margin-top:30px; background-color:#222; padding:10px; border-radius:8px;">
+    <h3>Calculadora de Lucro baseado em Horas Trabalhadas</h3>
+    <label>Horas trabalhadas: </label>
+    <input type="number" id="horasTrabalhadas" value="0" min="0" onchange="calcularLucro()"> x R$10,00
+    <div style="margin-top:10px;">Lucro necessário: <span id="lucroCalculado">0%</span></div>
   </div>
 
   <div class="button-container">
@@ -139,42 +138,56 @@
     const inputs = document.querySelectorAll('input[type="number"]');
     const checkboxes = document.querySelectorAll('.checkbox');
     const lucroInput = document.getElementById('lucro');
-    
+
     function calcularTotal() {
       let total = 0;
-      inputs.forEach(input => {
-        const checkbox = input.closest('tr').querySelector('input[type="checkbox"]');
-        
+      document.querySelectorAll("#itens tr").forEach(row => {
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        const input = row.querySelector('input[type="number"]');
+        const preco = parseFloat(input.dataset.preco);
+        const qtd = parseFloat(input.value);
+
         if (checkbox.checked) {
-          const preco = parseFloat(input.dataset.preco);
-          const qtd = parseFloat(input.value);
           const subtotal = preco * qtd;
-          input.parentElement.nextElementSibling.textContent = subtotal.toFixed(2);
+          row.querySelector(".subtotal").textContent = subtotal.toFixed(2);
           total += subtotal;
+        } else {
+          row.querySelector(".subtotal").textContent = "0.00";
         }
       });
-      
-      // Aplica o lucro
+
       let lucro = parseFloat(lucroInput.value) / 100;
       total += total * lucro;
-      document.getElementById('total').textContent = total.toFixed(2);
+      document.getElementById("valorTotal").textContent = total.toFixed(2);
     }
 
-    // Atualiza o total sempre que houver alteração
-    inputs.forEach(input => input.addEventListener('input', calcularTotal));
-    checkboxes.forEach(checkbox => checkbox.addEventListener('change', calcularTotal));
-    lucroInput.addEventListener('input', calcularTotal);
+    function calcularLucro() {
+      const horas = parseFloat(document.getElementById("horasTrabalhadas").value);
+      const custoHoras = horas * 10;
+      const total = parseFloat(document.getElementById("valorTotal").textContent);
+      const porcentagem = total > 0 ? (custoHoras / total) * 100 : 0;
+      document.getElementById("lucroCalculado").textContent = porcentagem.toFixed(1) + "%";
+    }
 
     function imprimirOrcamento() {
       window.print();
     }
 
     function enviarWhatsApp() {
-      const total = document.getElementById('total').textContent;
-      const numero = '+5517991943459'; // Número de WhatsApp (sem parênteses ou espaços)
+      const total = document.getElementById('valorTotal').textContent;
+      const numero = '+5517991943459';
       const url = `https://api.whatsapp.com/send?phone=${numero}&text=Orçamento%20Jardinagem%20-%20Total:%20R$${total}`;
       window.open(url, '_blank');
     }
+
+    inputs.forEach(input => input.addEventListener('input', calcularTotal));
+    checkboxes.forEach(checkbox => checkbox.addEventListener('change', calcularTotal));
+    lucroInput.addEventListener('input', calcularTotal);
+
+    window.onload = () => {
+      calcularTotal();
+      calcularLucro();
+    };
   </script>
 </body>
 </html>

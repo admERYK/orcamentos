@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orçamento Jardinagem</title>
   <style>
     body {
@@ -91,15 +91,6 @@
     .hidden {
       display: none;
     }
-    #nomeOrcamento {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
-      background: #111;
-      color: #FFD700;
-      border: 1px solid #FFD700;
-      font-size: 1.1em;
-    }
   </style>
 </head>
 <body>
@@ -109,8 +100,6 @@
   </div>
 
   <h1>Orçamento Jardinagem</h1>
-
-  <input type="text" id="nomeOrcamento" placeholder="Digite o nome do orçamento">
 
   <table>
     <thead>
@@ -137,7 +126,7 @@
 
   <div class="button-container">
     <button onclick="imprimirOrcamento()">Imprimir orçamento</button>
-    <button onclick="salvarComoPDF()">Salvar como Word</button>
+    <button onclick="salvarComoWord()">Salvar como Word</button>
     <button onclick="enviarWhatsApp()">Enviar para WhatsApp</button>
     <button onclick="toggleConfiguracoes()">Gerenciar Itens</button>
   </div>
@@ -233,21 +222,68 @@
       window.print();
     }
 
-    function salvarComoPDF() {
-      const nome = document.getElementById('nomeOrcamento').value || "orcamento";
-      const html = document.documentElement.outerHTML;
-      const blob = new Blob([html], { type: 'application/msword' });
+    function salvarComoWord() {
+      const total = document.getElementById('total').textContent;
+      const nomeOrcamento = prompt('Digite o nome do orçamento para o Word:') || 'Orçamento';
+      const linhas = tbody.querySelectorAll('tr');
+      const horas = document.getElementById('horasTrabalhadas').value;
+      const lucro = document.getElementById('lucroNecessario').textContent;
+
+      let conteudo = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office'
+              xmlns:w='urn:schemas-microsoft-com:office:word'
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>Orçamento</title></head><body>
+        <h2>${nomeOrcamento}</h2>
+        <table border='1' style='border-collapse:collapse; width:100%;'>
+          <tr>
+            <th>Serviço / Item</th>
+            <th>Preço (R$)</th>
+            <th>Quantidade</th>
+            <th>Subtotal (R$)</th>
+          </tr>`;
+
+      linhas.forEach(tr => {
+        const checkbox = tr.querySelector('input[type="checkbox"]');
+        const ativo = checkbox.checked;
+        if (ativo) {
+          const colunas = tr.querySelectorAll('td');
+          const nome = colunas[1].innerText;
+          const preco = colunas[2].innerText;
+          const qtd = colunas[3].querySelector('input').value;
+          const subtotal = colunas[4].innerText;
+          conteudo += `
+            <tr>
+              <td>${nome}</td>
+              <td>${preco}</td>
+              <td>${qtd}</td>
+              <td>${subtotal}</td>
+            </tr>`;
+        }
+      });
+
+      conteudo += `</table>
+        <p><strong>Total:</strong> R$ ${total}</p>
+        <p><strong>Horas trabalhadas:</strong> ${horas}</p>
+        <p><strong>Lucro necessário:</strong> ${lucro}</p>
+        </body></html>`;
+
+      const blob = new Blob(['\ufeff', conteudo], {
+        type: 'application/msword'
+      });
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = nome + '.doc';
+      a.download = nomeOrcamento.replace(/\s+/g, '_') + '.doc';
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     }
 
     function enviarWhatsApp() {
       const total = document.getElementById('total').textContent;
-      const nome = document.getElementById('nomeOrcamento').value || 'Sem nome';
+      const nome = prompt('Digite o nome do orçamento:');
       const numero = '+5517991943459';
       const url = `https://api.whatsapp.com/send?phone=${numero}&text=Orçamento: ${nome}%0ATotal: R$${total}`;
       window.open(url, '_blank');

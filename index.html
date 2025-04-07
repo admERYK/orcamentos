@@ -1,87 +1,108 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orçamento Jardinagem</title>
   <style>
     body {
-      background: #000;
+      font-family: 'Arial', sans-serif;
+      background-color: #000;
       color: #fff;
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+      line-height: 1.6;
     }
     h1 {
-      color: yellow;
       text-align: center;
-      margin: 1rem 0;
+      color: #FFD700;
     }
     table {
-      width: 95%;
-      margin: auto;
+      width: 100%;
       border-collapse: collapse;
-      margin-bottom: 1rem;
+      margin-bottom: 20px;
     }
     th, td {
-      border: 1px solid yellow;
-      padding: 8px;
-      text-align: center;
+      padding: 10px;
+      border: 1px solid #FFD700;
+      text-align: left;
     }
     th {
-      background: #111;
+      background-color: #333;
+    }
+    td {
+      background-color: #222;
     }
     input[type="number"], input[type="text"] {
       width: 80px;
-      background: #222;
+      background-color: #444;
       color: #fff;
-      border: 1px solid yellow;
+      border: 1px solid #FFD700;
+      padding: 5px;
+      border-radius: 4px;
     }
-    .buttons {
+    .total {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    .button-container {
       text-align: center;
-      margin-bottom: 1rem;
+      margin-top: 20px;
     }
     button {
-      background: yellow;
+      background-color: #FFD700;
+      color: #000;
       border: none;
-      padding: 10px;
+      padding: 10px 20px;
       margin: 5px;
+      border-radius: 4px;
       cursor: pointer;
     }
-    #settingsPanel {
-      position: fixed;
-      right: 20px;
-      bottom: 20px;
-      background: #111;
-      border: 1px solid yellow;
-      padding: 10px;
-      z-index: 999;
-      display: none;
+    button:hover {
+      background-color: #e6b800;
     }
-    #profile-pic {
+    #config-panel {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      background-color: #111;
+      border: 1px solid #FFD700;
+      padding: 15px;
+      display: none;
+      z-index: 1000;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    #config-panel input {
+      margin: 4px 0;
+    }
+    #config-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    #foto-perfil {
       position: fixed;
       top: 10px;
       right: 10px;
-      width: 50px;
-      height: 50px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background-size: cover;
-      background-position: center;
-      border: 2px solid yellow;
-      cursor: pointer;
-    }
-    #profile-upload {
-      display: none;
+      object-fit: cover;
+      border: 2px solid #FFD700;
     }
   </style>
 </head>
 <body>
-  <div id="profile-pic" onclick="document.getElementById('profile-upload').click()"></div>
-  <input type="file" id="profile-upload" accept="image/*">
-
   <h1>Orçamento Jardinagem</h1>
 
-  <table id="itemsTable">
+  <input type="file" id="upload-foto" style="display:none" accept="image/*">
+  <img id="foto-perfil" title="Clique para trocar a foto">
+
+  <table>
     <thead>
       <tr>
         <th>Selecione</th>
@@ -91,130 +112,157 @@
         <th>Subtotal (R$)</th>
       </tr>
     </thead>
-    <tbody id="itemsBody"></tbody>
+    <tbody id="itens">
+      <tr>
+        <td><input type="checkbox" checked></td>
+        <td>Gasolina maquinário</td>
+        <td>6.05</td>
+        <td><input type="number" min="0" value="0" data-preco="6.05"></td>
+        <td class="subtotal">0.00</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" checked></td>
+        <td>Diária por prestador</td>
+        <td>50.00</td>
+        <td><input type="number" min="0" value="0" data-preco="50.00"></td>
+        <td class="subtotal">0.00</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" checked></td>
+        <td>Saco de lixo (unidade)</td>
+        <td>0.50</td>
+        <td><input type="number" min="0" value="0" data-preco="0.50"></td>
+        <td class="subtotal">0.00</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" checked></td>
+        <td>Gasolina para carro (a cada 10km)</td>
+        <td>20.00</td>
+        <td><input type="number" min="0" value="0" data-preco="20.00"></td>
+        <td class="subtotal">0.00</td>
+      </tr>
+    </tbody>
   </table>
 
-  <div class="buttons">
-    <div>Total: R$ <span id="total">0.00</span></div>
-    <label>Lucro (%): <input type="number" id="profit" value="0" onchange="updateTotal()">%</label>
-    <div><button onclick="printOrcamento()">Imprimir orçamento</button> <button onclick="enviarWhatsApp()">Enviar para WhatsApp</button></div>
+  <div class="total">
+    Horas trabalhadas: <input type="number" id="horas" value="0" min="0"> x R$10,00/hora
+  </div>
+  <div class="total">
+    Lucro sugerido com base nas horas: <span id="lucro-sugerido">0%</span>
+  </div>
+  <div class="total">
+    Lucro aplicado manualmente: <input type="number" id="lucro" value="0" min="0">%
+  </div>
+  <div class="total">
+    Total com lucro: R$ <span id="total">0.00</span>
   </div>
 
-  <button style="position: fixed; bottom: 20px; left: 20px;" onclick="toggleSettings()">Gerenciar Itens</button>
-  <div id="settingsPanel">
-    <div><strong>Adicionar/Editar Item</strong></div>
-    <input type="text" id="itemNome" placeholder="Nome">
-    <input type="number" id="itemPreco" placeholder="Preço">
-    <input type="number" id="itemQtd" placeholder="Qtd">
+  <div class="button-container">
+    <button onclick="imprimirOrcamento()">Imprimir orçamento</button>
+  </div>
+
+  <button id="config-btn" onclick="document.getElementById('config-panel').style.display='block'">Gerenciar Itens</button>
+  <div id="config-panel">
+    <h3>Adicionar Item</h3>
+    <input type="text" id="nome-item" placeholder="Nome do item">
+    <input type="number" id="preco-item" placeholder="Preço">
     <button onclick="adicionarItem()">Adicionar</button>
-    <div id="editList"></div>
+    <h3>Itens Existentes</h3>
+    <ul id="lista-itens"></ul>
+    <button onclick="document.getElementById('config-panel').style.display='none'">Fechar</button>
   </div>
 
   <script>
-    let itens = JSON.parse(localStorage.getItem('itens') || '[]');
+    const lucroInput = document.getElementById('lucro');
+    const horasInput = document.getElementById('horas');
+    const fotoPerfil = document.getElementById('foto-perfil');
+    const uploadFoto = document.getElementById('upload-foto');
 
-    function salvarItens() {
-      localStorage.setItem('itens', JSON.stringify(itens));
-    }
-
-    function renderTabela() {
-      const body = document.getElementById('itemsBody');
-      body.innerHTML = '';
-      itens.forEach((item, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><input type="checkbox" onchange="updateTotal()" data-i="${index}" checked></td>
-          <td>${item.nome}</td>
-          <td>${item.preco.toFixed(2)}</td>
-          <td><input type="number" value="${item.qtd}" onchange="itens[${index}].qtd=this.value;salvarItens();renderTabela()"></td>
-          <td>${(item.qtd * item.preco).toFixed(2)}</td>
-        `;
-        body.appendChild(row);
-      });
-      updateTotal();
-    }
-
-    function updateTotal() {
+    function calcularTotal() {
       let total = 0;
-      document.querySelectorAll('#itemsBody input[type=checkbox]').forEach(cb => {
-        const index = cb.dataset.i;
-        if (cb.checked) {
-          total += itens[index].preco * itens[index].qtd;
-        }
+      const linhas = document.querySelectorAll('#itens tr');
+
+      linhas.forEach(tr => {
+        const checkbox = tr.querySelector('input[type="checkbox"]');
+        const qtdInput = tr.querySelector('input[type="number"]');
+        const preco = parseFloat(qtdInput.dataset.preco);
+        const qtd = parseFloat(qtdInput.value);
+        const subtotal = checkbox.checked ? preco * qtd : 0;
+        tr.querySelector('.subtotal').textContent = subtotal.toFixed(2);
+        if (checkbox.checked) total += subtotal;
       });
-      const lucro = parseFloat(document.getElementById('profit').value) || 0;
-      total += total * (lucro / 100);
-      document.getElementById('total').textContent = total.toFixed(2);
+
+      // Lucro sugerido
+      const horas = parseFloat(horasInput.value);
+      const custoHoras = horas * 10;
+      const lucroPercentual = custoHoras > 0 ? ((total - custoHoras) / custoHoras) * 100 : 0;
+      document.getElementById('lucro-sugerido').textContent = lucroPercentual.toFixed(0) + '%';
+
+      // Lucro aplicado
+      const lucro = parseFloat(lucroInput.value);
+      const totalComLucro = total + (total * lucro / 100);
+      document.getElementById('total').textContent = totalComLucro.toFixed(2);
     }
 
-    function adicionarItem() {
-      const nome = document.getElementById('itemNome').value;
-      const preco = parseFloat(document.getElementById('itemPreco').value);
-      const qtd = parseInt(document.getElementById('itemQtd').value);
-      if (!nome || isNaN(preco) || isNaN(qtd)) return;
-      itens.push({ nome, preco, qtd });
-      salvarItens();
-      renderTabela();
-      renderEditList();
-    }
+    document.querySelectorAll('input[type="number"]').forEach(inp => inp.addEventListener('input', calcularTotal));
+    document.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.addEventListener('change', calcularTotal));
+    lucroInput.addEventListener('input', calcularTotal);
+    horasInput.addEventListener('input', calcularTotal);
 
-    function toggleSettings() {
-      const panel = document.getElementById('settingsPanel');
-      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-      renderEditList();
-    }
-
-    function renderEditList() {
-      const container = document.getElementById('editList');
-      container.innerHTML = itens.map((item, i) =>
-        `<div style="margin-top:5px;">
-          ${item.nome} <button onclick="excluirItem(${i})">Excluir</button>
-        </div>`
-      ).join('');
-    }
-
-    function excluirItem(i) {
-      itens.splice(i, 1);
-      salvarItens();
-      renderTabela();
-      renderEditList();
-    }
-
-    function printOrcamento() {
+    function imprimirOrcamento() {
       window.print();
     }
 
-    function enviarWhatsApp() {
-      let msg = 'Orçamento:\n';
-      document.querySelectorAll('#itemsBody input[type=checkbox]').forEach(cb => {
-        if (cb.checked) {
-          const i = cb.dataset.i;
-          const item = itens[i];
-          msg += `- ${item.nome} (${item.qtd} x ${item.preco.toFixed(2)}) = R$ ${(item.qtd * item.preco).toFixed(2)}\n`;
-        }
+    function adicionarItem() {
+      const nome = document.getElementById('nome-item').value;
+      const preco = parseFloat(document.getElementById('preco-item').value);
+      if (!nome || isNaN(preco)) return alert('Preencha corretamente!');
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><input type="checkbox" checked></td><td>${nome}</td><td>${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" data-preco="${preco.toFixed(2)}"></td><td class="subtotal">0.00</td>`;
+      document.getElementById('itens').appendChild(tr);
+      tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', calcularTotal));
+      calcularTotal();
+      atualizarListaItens();
+    }
+
+    function atualizarListaItens() {
+      const lista = document.getElementById('lista-itens');
+      lista.innerHTML = '';
+      document.querySelectorAll('#itens tr').forEach((tr, index) => {
+        const nome = tr.children[1].textContent;
+        const li = document.createElement('li');
+        li.innerHTML = `${nome} <button onclick="removerItem(${index})">Remover</button>`;
+        lista.appendChild(li);
       });
-      msg += `Total: R$ ${document.getElementById('total').textContent}`;
-      const link = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      window.open(link, '_blank');
     }
 
-    function carregarFotoPerfil() {
-      const foto = localStorage.getItem('fotoPerfil');
-      if (foto) document.getElementById('profile-pic').style.backgroundImage = `url(${foto})`;
+    function removerItem(index) {
+      const trs = document.querySelectorAll('#itens tr');
+      if (trs[index]) trs[index].remove();
+      atualizarListaItens();
+      calcularTotal();
     }
 
-    document.getElementById('profile-upload').addEventListener('change', e => {
+    function carregarFoto() {
+      const imgData = localStorage.getItem('fotoPerfil');
+      if (imgData) fotoPerfil.src = imgData;
+    }
+
+    fotoPerfil.addEventListener('click', () => uploadFoto.click());
+    uploadFoto.addEventListener('change', e => {
       const file = e.target.files[0];
       const reader = new FileReader();
       reader.onload = () => {
         localStorage.setItem('fotoPerfil', reader.result);
-        carregarFotoPerfil();
-      };
+        carregarFoto();
+      }
       if (file) reader.readAsDataURL(file);
     });
 
-    carregarFotoPerfil();
-    renderTabela();
+    carregarFoto();
+    atualizarListaItens();
+    calcularTotal();
   </script>
 </body>
 </html>

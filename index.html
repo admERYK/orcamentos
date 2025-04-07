@@ -10,9 +10,10 @@
       background-color: #000;
       color: #fff;
       padding: 20px;
-      max-width: 900px;
+      max-width: 1000px;
       margin: auto;
       line-height: 1.6;
+      position: relative;
     }
     h1 {
       text-align: center;
@@ -45,7 +46,9 @@
     .total {
       font-weight: bold;
       font-size: 1.2em;
+      text-align: right;
       margin-top: 10px;
+      color: #FFD700;
     }
     .button-container {
       text-align: center;
@@ -63,44 +66,47 @@
     button:hover {
       background-color: #e6b800;
     }
-    #config-panel {
-      position: fixed;
-      top: 60px;
-      right: 20px;
-      background-color: #111;
-      border: 1px solid #FFD700;
-      padding: 15px;
-      display: none;
-      z-index: 1000;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    #config-panel input {
-      margin: 4px 0;
-    }
-    #config-btn {
+    #configBtn {
       position: fixed;
       bottom: 20px;
-      right: 20px;
-      z-index: 1000;
+      left: 20px;
+      z-index: 100;
     }
-    #foto-perfil {
+    #configPanel {
       position: fixed;
-      top: 10px;
-      right: 10px;
-      width: 40px;
-      height: 40px;
+      bottom: 70px;
+      left: 20px;
+      background: #111;
+      border: 1px solid #FFD700;
+      padding: 15px;
+      border-radius: 8px;
+      display: none;
+      z-index: 100;
+      max-width: 90vw;
+    }
+    #profilePic {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
-      object-fit: cover;
       border: 2px solid #FFD700;
+      object-fit: cover;
+      cursor: pointer;
+    }
+    #orcamentoNome {
+      margin-top: 20px;
+      width: 100%;
+      max-width: 300px;
+      background-color: #222;
     }
   </style>
 </head>
 <body>
   <h1>Orçamento Jardinagem</h1>
 
-  <input type="file" id="upload-foto" style="display:none" accept="image/*">
-  <img id="foto-perfil" title="Clique para trocar a foto">
+  <input type="text" id="orcamentoNome" placeholder="Nome do orçamento">
 
   <table>
     <thead>
@@ -112,157 +118,163 @@
         <th>Subtotal (R$)</th>
       </tr>
     </thead>
-    <tbody id="itens">
-      <tr>
-        <td><input type="checkbox" checked></td>
-        <td>Gasolina maquinário</td>
-        <td>6.05</td>
-        <td><input type="number" min="0" value="0" data-preco="6.05"></td>
-        <td class="subtotal">0.00</td>
-      </tr>
-      <tr>
-        <td><input type="checkbox" checked></td>
-        <td>Diária por prestador</td>
-        <td>50.00</td>
-        <td><input type="number" min="0" value="0" data-preco="50.00"></td>
-        <td class="subtotal">0.00</td>
-      </tr>
-      <tr>
-        <td><input type="checkbox" checked></td>
-        <td>Saco de lixo (unidade)</td>
-        <td>0.50</td>
-        <td><input type="number" min="0" value="0" data-preco="0.50"></td>
-        <td class="subtotal">0.00</td>
-      </tr>
-      <tr>
-        <td><input type="checkbox" checked></td>
-        <td>Gasolina para carro (a cada 10km)</td>
-        <td>20.00</td>
-        <td><input type="number" min="0" value="0" data-preco="20.00"></td>
-        <td class="subtotal">0.00</td>
-      </tr>
-    </tbody>
+    <tbody id="itens"></tbody>
   </table>
 
   <div class="total">
-    Horas trabalhadas: <input type="number" id="horas" value="0" min="0"> x R$10,00/hora
+    Total: R$ <span id="total">0.00</span>
   </div>
+
   <div class="total">
-    Lucro sugerido com base nas horas: <span id="lucro-sugerido">0%</span>
+    Lucro (%): <input type="number" id="lucro" value="0" min="0" max="100">%
   </div>
+
   <div class="total">
-    Lucro aplicado manualmente: <input type="number" id="lucro" value="0" min="0">%
+    Horas Trabalhadas: <input type="number" id="horas" value="0" min="0">
   </div>
+
   <div class="total">
-    Total com lucro: R$ <span id="total">0.00</span>
+    Lucro baseado nas horas (10/h): R$ <span id="lucroHoras">0.00</span>
   </div>
 
   <div class="button-container">
     <button onclick="imprimirOrcamento()">Imprimir orçamento</button>
+    <button onclick="enviarWhatsApp()">Enviar para WhatsApp</button>
   </div>
 
-  <button id="config-btn" onclick="document.getElementById('config-panel').style.display='block'">Gerenciar Itens</button>
-  <div id="config-panel">
-    <h3>Adicionar Item</h3>
-    <input type="text" id="nome-item" placeholder="Nome do item">
-    <input type="number" id="preco-item" placeholder="Preço">
+  <button id="configBtn" onclick="toggleConfig()">Gerenciar Itens</button>
+
+  <div id="configPanel">
+    <h3>Adicionar Novo Item</h3>
+    <input type="text" id="novoNome" placeholder="Nome do item">
+    <input type="number" id="novoPreco" placeholder="Preço" step="0.01">
     <button onclick="adicionarItem()">Adicionar</button>
-    <h3>Itens Existentes</h3>
-    <ul id="lista-itens"></ul>
-    <button onclick="document.getElementById('config-panel').style.display='none'">Fechar</button>
+    <h3>Itens Atuais</h3>
+    <ul id="listaItens"></ul>
   </div>
+
+  <input type="file" id="uploadFoto" accept="image/*" style="display:none">
+  <img id="profilePic" onclick="document.getElementById('uploadFoto').click()">
 
   <script>
-    const lucroInput = document.getElementById('lucro');
-    const horasInput = document.getElementById('horas');
-    const fotoPerfil = document.getElementById('foto-perfil');
-    const uploadFoto = document.getElementById('upload-foto');
+    let itens = [
+      { id: 'gasolina', nome: 'Gasolina maquinário', preco: 6.05 },
+      { id: 'diaria', nome: 'Diária por prestador', preco: 50.00 },
+      { id: 'saco', nome: 'Saco de lixo (unidade)', preco: 0.50 },
+      { id: 'gas-carro', nome: 'Gasolina para carro (a cada 10km)', preco: 20.00 },
+      { id: 'hora', nome: 'Hora trabalhada', preco: 10.00 }
+    ];
 
-    function calcularTotal() {
-      let total = 0;
-      const linhas = document.querySelectorAll('#itens tr');
-
-      linhas.forEach(tr => {
-        const checkbox = tr.querySelector('input[type="checkbox"]');
-        const qtdInput = tr.querySelector('input[type="number"]');
-        const preco = parseFloat(qtdInput.dataset.preco);
-        const qtd = parseFloat(qtdInput.value);
-        const subtotal = checkbox.checked ? preco * qtd : 0;
-        tr.querySelector('.subtotal').textContent = subtotal.toFixed(2);
-        if (checkbox.checked) total += subtotal;
+    function renderItens() {
+      const tbody = document.getElementById('itens');
+      tbody.innerHTML = '';
+      itens.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" checked data-index="${index}" class="checkbox"></td>
+          <td>${item.nome}</td>
+          <td>${item.preco.toFixed(2)}</td>
+          <td><input type="number" min="0" value="0" data-preco="${item.preco}" data-index="${index}" class="quantidade"></td>
+          <td class="subtotal">0.00</td>
+        `;
+        tbody.appendChild(row);
       });
-
-      // Lucro sugerido
-      const horas = parseFloat(horasInput.value);
-      const custoHoras = horas * 10;
-      const lucroPercentual = custoHoras > 0 ? ((total - custoHoras) / custoHoras) * 100 : 0;
-      document.getElementById('lucro-sugerido').textContent = lucroPercentual.toFixed(0) + '%';
-
-      // Lucro aplicado
-      const lucro = parseFloat(lucroInput.value);
-      const totalComLucro = total + (total * lucro / 100);
-      document.getElementById('total').textContent = totalComLucro.toFixed(2);
+      renderListaConfig();
+      atualizarEventos();
     }
 
-    document.querySelectorAll('input[type="number"]').forEach(inp => inp.addEventListener('input', calcularTotal));
-    document.querySelectorAll('input[type="checkbox"]').forEach(chk => chk.addEventListener('change', calcularTotal));
-    lucroInput.addEventListener('input', calcularTotal);
-    horasInput.addEventListener('input', calcularTotal);
+    function atualizarEventos() {
+      document.querySelectorAll('.quantidade, .checkbox').forEach(el => {
+        el.addEventListener('input', calcularTotal);
+        el.addEventListener('change', calcularTotal);
+      });
+    }
+
+    function calcularTotal() {
+      const horas = parseFloat(document.getElementById('horas').value) || 0;
+      const lucroInput = parseFloat(document.getElementById('lucro').value) / 100;
+      let total = 0;
+      document.querySelectorAll('#itens tr').forEach((tr, index) => {
+        const checkbox = tr.querySelector('.checkbox');
+        const input = tr.querySelector('.quantidade');
+        if (checkbox.checked) {
+          const preco = parseFloat(input.dataset.preco);
+          const qtd = parseFloat(input.value);
+          const subtotal = preco * qtd;
+          tr.querySelector('.subtotal').textContent = subtotal.toFixed(2);
+          total += subtotal;
+        }
+      });
+      const custoHoras = horas * 10;
+      const lucroBase = total * lucroInput;
+      const lucroHoras = total - custoHoras;
+      document.getElementById('lucroHoras').textContent = lucroHoras.toFixed(2);
+      total += lucroBase;
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
 
     function imprimirOrcamento() {
       window.print();
     }
 
-    function adicionarItem() {
-      const nome = document.getElementById('nome-item').value;
-      const preco = parseFloat(document.getElementById('preco-item').value);
-      if (!nome || isNaN(preco)) return alert('Preencha corretamente!');
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td><input type="checkbox" checked></td><td>${nome}</td><td>${preco.toFixed(2)}</td><td><input type="number" min="0" value="0" data-preco="${preco.toFixed(2)}"></td><td class="subtotal">0.00</td>`;
-      document.getElementById('itens').appendChild(tr);
-      tr.querySelectorAll('input').forEach(inp => inp.addEventListener('input', calcularTotal));
-      calcularTotal();
-      atualizarListaItens();
+    function enviarWhatsApp() {
+      const total = document.getElementById('total').textContent;
+      const nome = document.getElementById('orcamentoNome').value || 'Orçamento';
+      const numero = '+5517991943459';
+      const url = `https://api.whatsapp.com/send?phone=${numero}&text=${encodeURIComponent(nome + ' - Total: R$ ' + total)}`;
+      window.open(url, '_blank');
     }
 
-    function atualizarListaItens() {
-      const lista = document.getElementById('lista-itens');
-      lista.innerHTML = '';
-      document.querySelectorAll('#itens tr').forEach((tr, index) => {
-        const nome = tr.children[1].textContent;
+    function toggleConfig() {
+      const panel = document.getElementById('configPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function adicionarItem() {
+      const nome = document.getElementById('novoNome').value;
+      const preco = parseFloat(document.getElementById('novoPreco').value);
+      if (nome && !isNaN(preco)) {
+        itens.push({ id: nome.toLowerCase().replace(/\s/g, '-'), nome, preco });
+        renderItens();
+        calcularTotal();
+      }
+    }
+
+    function renderListaConfig() {
+      const ul = document.getElementById('listaItens');
+      ul.innerHTML = '';
+      itens.forEach((item, index) => {
         const li = document.createElement('li');
-        li.innerHTML = `${nome} <button onclick="removerItem(${index})">Remover</button>`;
-        lista.appendChild(li);
+        li.innerHTML = `${item.nome} (R$${item.preco.toFixed(2)}) <button onclick="removerItem(${index})">Remover</button>`;
+        ul.appendChild(li);
       });
     }
 
     function removerItem(index) {
-      const trs = document.querySelectorAll('#itens tr');
-      if (trs[index]) trs[index].remove();
-      atualizarListaItens();
+      itens.splice(index, 1);
+      renderItens();
       calcularTotal();
     }
 
-    function carregarFoto() {
-      const imgData = localStorage.getItem('fotoPerfil');
-      if (imgData) fotoPerfil.src = imgData;
-    }
-
-    fotoPerfil.addEventListener('click', () => uploadFoto.click());
-    uploadFoto.addEventListener('change', e => {
+    document.getElementById('uploadFoto').addEventListener('change', function(e) {
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        localStorage.setItem('fotoPerfil', reader.result);
-        carregarFoto();
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const imgData = evt.target.result;
+          localStorage.setItem('fotoPerfil', imgData);
+          document.getElementById('profilePic').src = imgData;
+        };
+        reader.readAsDataURL(file);
       }
-      if (file) reader.readAsDataURL(file);
     });
 
-    carregarFoto();
-    atualizarListaItens();
-    calcularTotal();
+    window.onload = () => {
+      const savedFoto = localStorage.getItem('fotoPerfil');
+      if (savedFoto) document.getElementById('profilePic').src = savedFoto;
+      renderItens();
+      calcularTotal();
+    }
   </script>
 </body>
 </html>

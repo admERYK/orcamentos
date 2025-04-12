@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carvalho Orçamentos</title>
+  <link rel="manifest" href="/orcamentos/manifest.json" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+  <meta name="theme-color" content="#4CAF50" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('1001398390.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      background-color: rgba(255,255,255,0.8);
+      padding: 1rem;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      border-radius: 8px;
+    }
+    textarea, input[type="text"], input[type="file"], select {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .buttons {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .buttons button {
+      margin: 5px;
+      padding: 0.8rem 1.5rem;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .qr-section {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .qr-section img {
+      height: 120px;
+    }
+    .history {
+      margin-top: 30px;
+    }
+    .history-item {
+      background-color: #e8f5e9;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .history-item:hover {
+      background-color: #c8e6c9;
+    }
+    #configPanel {
+      display: none;
+      position: fixed;
+      right: 0;
+      top: 0;
+      background: white;
+      width: 300px;
+      height: 100%;
+      padding: 20px;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+      overflow-y: auto;
+      z-index: 999;
+    }
+    #configPanel input, #configPanel textarea {
+      margin-bottom: 10px;
+    }
+    #configButton {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+
+  <button id="configButton" onclick="toggleConfig()">⚙️</button>
+
+  <div id="configPanel">
+    <h3>Configurações</h3>
+    <label>Nome da Empresa:</label>
+    <input type="text" id="empresa" />
+
+    <label>Endereço:</label>
+    <input type="text" id="endereco" />
+
+    <label>CNPJ:</label>
+    <input type="text" id="cnpj" />
+
+    <label>Telefone:</label>
+    <input type="text" id="telefone" />
+
+    <label>Desconto Padrão (%):</label>
+    <input type="text" id="desconto" />
+
+    <label>Condições de Pagamento:</label>
+    <textarea id="condicoes" rows="2"></textarea>
+
+    <label>Logo (PNG):</label>
+    <input type="file" id="logoUpload" accept="image/png" />
+
+    <label>QR Code PIX:</label>
+    <input type="file" id="pixUpload" accept="image/png" />
+
+    <label>Tema:</label>
+    <select id="tema">
+      <option value="claro">Claro</option>
+      <option value="escuro">Escuro</option>
+    </select>
+
+    <button onclick="salvarConfiguracoes()">Salvar Configurações</button>
+  </div>
+
+  <header>
+    <h1 id="nomeEmpresa">Carvalho Orçamentos</h1>
+    <p>Soluções profissionais para o seu jardim</p>
+  </header>
+
+  <div class="container">
+    <label for="orcamento">Digite seu orçamento:</label>
+    <textarea id="orcamento" rows="10" placeholder="Itens, preços, condições..."></textarea>
+
+    <div class="buttons">
+      <button onclick="salvarOrcamento()">Salvar Orçamento</button>
+      <button onclick="window.print()">Salvar como PDF</button>
+    </div>
+
+    <div class="qr-section">
+      <p>Pagamento via PIX:</p>
+      <img id="pixImage" src="qr_pix_cortado.png" alt="QR Code PIX" />
+    </div>
+
+    <div class="history">
+      <h3>Histórico de Orçamentos</h3>
+      <input type="text" id="busca" placeholder="Buscar por nome ou data" oninput="buscarHistorico()" />
+      <div id="historico"></div>
+    </div>
+  </div>
+
+  <script>
+    const orcamentoEl = document.getElementById("orcamento");
+    const historicoEl = document.getElementById("historico");
+
+    function salvarOrcamento() {
+      const texto = orcamentoEl.value.trim();
+      if (!texto) return alert("Digite o orçamento antes de salvar.");
+      const historico = JSON.parse(localStorage.getItem("historico_orcamentos") || "[]");
+      const novo = { id: Date.now(), texto: texto, data: new Date().toLocaleString() };
+      historico.push(novo);
+      localStorage.setItem("historico_orcamentos", JSON.stringify(historico));
+      orcamentoEl.value = "";
+      carregarHistorico();
+      alert("Orçamento salvo com sucesso!");
+    }
+
+    function carregarHistorico(filtro = "") {
+      const historico = JSON.parse(localStorage.getItem("historico_orcamentos") || "[]");
+      historicoEl.innerHTML = "";
+      historico.reverse().forEach(item => {
+        if (item.texto.toLowerCase().includes(filtro.toLowerCase()) || item.data.includes(filtro)) {
+          const div = document.createElement("div");
+          div.className = "history-item";
+          div.innerHTML = `<strong>${item.data}</strong><br>${item.texto.substring(0, 100)}...`;
+          div.onclick = () => {
+            if (confirm("Carregar este orçamento?")) {
+              orcamentoEl.value = item.texto;
+              window.scrollTo(0, 0);
+            }
+          };
+          historicoEl.appendChild(div);
+        }
+      });
+    }
+
+    function buscarHistorico() {
+      const termo = document.getElementById("busca").value;
+      carregarHistorico(termo);
+    }
+
+    function toggleConfig() {
+      const panel = document.getElementById("configPanel");
+      panel.style.display = panel.style.display === "block" ? "none" : "block";
+    }
+
+    function salvarConfiguracoes() {
+      const config = {
+        empresa: document.getElementById("empresa").value,
+        endereco: document.getElementById("endereco").value,
+        cnpj: document.getElementById("cnpj").value,
+        telefone: document.getElementById("telefone").value,
+        desconto: document.getElementById("desconto").value,
+        condicoes: document.getElementById("condicoes").value,
+        tema: document.getElementById("tema").value,
+        logo: localStorage.getItem("logo") || null,
+        pix: localStorage.getItem("pix") || null
+      };
+      localStorage.setItem("config_orcamentos", JSON.stringify(config));
+      alert("Configurações salvas!");
+      aplicarConfiguracoes();
+    }
+
+    function aplicarConfiguracoes() {
+      const config = JSON.parse(localStorage.getItem("config_orcamentos") || "{}");
+      if (config.empresa) document.getElementById("nomeEmpresa").innerText = config.empresa;
+      if (config.pix) document.getElementById("pixImage").src = config.pix;
+      if (config.tema === "escuro") document.body.style.filter = "invert(1)";
+      else document.body.style.filter = "none";
+    }
+
+    // Uploads de imagem para logo e PIX
+    document.getElementById("logoUpload").addEventListener("change", (e) => {
+      const reader = new FileReader();
+      reader.onload = () => localStorage.setItem("logo", reader.result);
+      reader.readAsDataURL(e.target.files[0]);
+    });
+
+    document.getElementById("pixUpload").addEventListener("change", (e) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        localStorage.setItem("pix", reader.result);
+        document.getElementById("pixImage").src = reader.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/orcamentos/sw.js');
+    }
+
+    aplicarConfiguracoes();
+    carregarHistorico();
+  </script>
+
+</body>
+</html>

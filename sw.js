@@ -1,24 +1,25 @@
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open('orcamento-cache').then((cache) => {
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open("carvalho-orcamentos-cache").then((cache) => {
       return cache.addAll([
-        './',
-        './index.html',
-        './manifest.json',
-        './icon-192.png',
-        './icon-512.png',
-        './logo.png',
-        './qrcode-whatsapp.png',
-        './qrcode-pix.png'
+        "/orcamentos/",
+        "/orcamentos/index.html",
+        "/orcamentos/icon-192.png",
+        "/orcamentos/icon-512.png",
+        "/orcamentos/manifest.json",
+        "/orcamentos/qr_pix_cortado.png",
+        "/orcamentos/1001398390.png"
       ]);
     })
   );
+  self.skipWaiting();
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
     })
   );
 });

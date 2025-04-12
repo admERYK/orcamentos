@@ -1,7 +1,8 @@
+
 {
-  "name": "Orçamento de Jardinagem",
-  "short_name": "Orçamento",
-  "start_url": "./",
+  "name": "Carvalho Orçamentos",
+  "short_name": "Orçamentos",
+  "start_url": "/orcamentos/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
